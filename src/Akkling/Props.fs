@@ -76,16 +76,16 @@ type Props<'Message> =
                 | _ -> p
         p
 
-    static member Create<'Actor, 'Context, 'Message when 'Actor :> ActorBase>(receive: 'Context -> Effect<'Message>) : Props<'Message> = 
+    static member Create<'Actor, 'Context, 'Message when 'Actor :> ActorBase>(behavior : Behavior<'Message>) : Props<'Message> = 
         { ActorType = typeof<'Actor>
-          Args = [| receive |]
+          Args = [| behavior |]
           Dispatcher = None
           Mailbox = None
           Deploy = None
           Router = None
           SupervisionStrategy = None }
 
-    static member Create<'Actor, 'Context, 'Message when 'Actor :> ActorBase>(expr: Expr<('Context -> Effect<'Message>)>) : Props<'Message> = 
+    static member Create<'Actor, 'Context, 'Message when 'Actor :> ActorBase>(expr: Expr<Behavior<'Message>>) : Props<'Message> = 
         { ActorType = typeof<'Actor>
           Args = [| expr |]
           Dispatcher = None
@@ -137,11 +137,11 @@ and PropsSurrogate<'Message> =
 /// <summary>
 /// Creates a props describing a way to incarnate actor with behavior described by <paramref name="receive"/> function.
 /// </summary>
-let inline props (receive: Actor<'Message>->Effect<'Message>) : Props<'Message> = 
-    Props<'Message>.Create<FunActor<'Message>, Actor<'Message>, 'Message>(receive)
+let inline props (behavior : Behavior<'Message>) : Props<'Message> = 
+    Props<'Message>.Create<FunActor<'Message>, Actor<'Message>, 'Message>(behavior)
 
 /// <summary>
 /// Creates a props describing a way to incarnate actor with behavior described by <paramref name="expr"/> expression.
 /// </summary>
-let inline propse (expr: Expr<(Actor<'Message> -> Effect<'Message>)>) : Props<'Message> =
+let inline propse (expr: Expr<Behavior<'Message>>) : Props<'Message> =
     Props<'Message>.Create<FunActor<'Message>, Actor<'Message>, 'Message>(expr)

@@ -26,113 +26,94 @@ let ``Actor defined by recursive function responds on series of primitive messag
     expectMsg tck 2 |> ignore
     expectMsg tck 3 |> ignore
 
-[<Fact>]
-let ``Actor defined by recursive function stops on return Stop`` () : unit = testDefault <| fun tck -> 
-    let aref = 
-        spawn tck "actor"
-        <| props (fun mailbox ->
-            let rec loop () =
-                actor {
-                    let! msg = mailbox.Receive ()
-                    match msg with
-                    | "stop" -> return Stop
-                    | x -> 
-                        mailbox.Sender() <! x
-                        return! loop ()
-                }
-            loop ())
+//[<Fact>]
+//let ``Actor defined by recursive function stops on return Stop`` () : unit = testDefault <| fun tck -> 
+//    let aref = 
+//        spawn tck "actor"
+//        <| props (fun mailbox ->
+//            let rec loop () =
+//                actor {
+//                    let! msg = mailbox.Receive ()
+//                    match msg with
+//                    | "stop" -> return Stop
+//                    | x -> 
+//                        mailbox.Sender() <! x
+//                        return! loop ()
+//                }
+//            loop ())
+//
+//    monitor tck aref
+//
+//    aref <! "a"
+//    aref <! "b"
+//    aref <! "stop"
+//    aref <! "c"
+//    
+//    expectMsg tck "a" |> ignore
+//    expectMsg tck "b" |> ignore
+//    expectTerminated tck aref |> ignore
+//    expectNoMsg tck 
 
-    monitor tck aref
-
-    aref <! "a"
-    aref <! "b"
-    aref <! "stop"
-    aref <! "c"
+//[<Fact(Skip="FIXME")>]
+//let ``Actor defined by recursive function dead letters message on return Unhandled`` () : unit = testDefault <| fun tck ->
+//    let aref = 
+//        spawn tck "actor"
+//        <| props (fun mailbox ->
+//            let rec loop () =
+//                actor {
+//                    let! msg = mailbox.Receive ()
+//                    match msg with
+//                    | "unhandled" -> return Unhandled
+//                    | x -> 
+//                        mailbox.Sender() <! x
+//                        return! loop ()
+//                }
+//            loop ())
+//
+//    expectEvent 1 
+//    <| deadLettersEvents tck
+//    <| fun () ->
+//        aref <! "a"
+//        aref <! "b"
+//        aref <! "unhandled"
+//        aref <! "c"
+//
+//        expectMsg tck "a" |> ignore
+//        expectMsg tck "b" |> ignore
+//        expectMsg tck "c" |> ignore
+//        expectNoMsg tck
     
-    expectMsg tck "a" |> ignore
-    expectMsg tck "b" |> ignore
-    expectTerminated tck aref |> ignore
-    expectNoMsg tck 
-
-[<Fact(Skip="FIXME")>]
-let ``Actor defined by recursive function dead letters message on return Unhandled`` () : unit = testDefault <| fun tck ->
-    let aref = 
-        spawn tck "actor"
-        <| props (fun mailbox ->
-            let rec loop () =
-                actor {
-                    let! msg = mailbox.Receive ()
-                    match msg with
-                    | "unhandled" -> return Unhandled
-                    | x -> 
-                        mailbox.Sender() <! x
-                        return! loop ()
-                }
-            loop ())
-
-    expectEvent 1 
-    <| deadLettersEvents tck
-    <| fun () ->
-        aref <! "a"
-        aref <! "b"
-        aref <! "unhandled"
-        aref <! "c"
-
-        expectMsg tck "a" |> ignore
-        expectMsg tck "b" |> ignore
-        expectMsg tck "c" |> ignore
-        expectNoMsg tck
-
-[<Fact>]
-let ``<|> combinator executes right side when left side was unhandled`` () = testDefault <| fun tck ->
-    let left (ctx: Actor<_>) = function
-        | "unhandled" -> unhandled ()
-        | n -> ctx.Sender() <! n |> ignored
-    let right (ctx: Actor<_>) = function
-        | "unhandled" -> ctx.Sender() <! "handled" |> ignored
-        | n -> ctx.Sender() <! n |> ignored
-    let combined = left <|> right
+//[<Fact>]
+//let ``<&> combinator executes right side when left side was handled`` () = testDefault <| fun tck ->
+//    let left (ctx: Actor<_>) = function
+//        | "unhandled" -> unhandled ()
+//        | n -> ctx.Sender() <! n |> ignored
+//    let right (ctx: Actor<_>) = function
+//        | "unhandled" -> ctx.Sender() <! "handled" |> ignored
+//        | n -> ctx.Sender() <! n + " again" |> ignored
+//    let combined = left <&> right
+//    
+//    let aref = spawnAnonymous tck <| props (actorOf2 combined)
+//
+//    aref <! "hello"
+//    aref <! "unhandled"
+//
+//    expectMsg tck "hello" |> ignore
+//    expectMsg tck "hello again" |> ignore
+//    expectNoMsg tck
     
-    let aref = spawnAnonymous tck <| props (actorOf2 combined)
-
-    aref <! "ok"
-    aref <! "unhandled"
-
-    expectMsg tck "ok" |> ignore
-    expectMsg tck "handled" |> ignore
-    expectNoMsg tck
-    
-[<Fact>]
-let ``<&> combinator executes right side when left side was handled`` () = testDefault <| fun tck ->
-    let left (ctx: Actor<_>) = function
-        | "unhandled" -> unhandled ()
-        | n -> ctx.Sender() <! n |> ignored
-    let right (ctx: Actor<_>) = function
-        | "unhandled" -> ctx.Sender() <! "handled" |> ignored
-        | n -> ctx.Sender() <! n + " again" |> ignored
-    let combined = left <&> right
-    
-    let aref = spawnAnonymous tck <| props (actorOf2 combined)
-
-    aref <! "hello"
-    aref <! "unhandled"
-
-    expectMsg tck "hello" |> ignore
-    expectMsg tck "hello again" |> ignore
-    expectNoMsg tck
-    
-[<Fact>]
-let ``pipeTo operator doesn't block`` () = testDefault <| fun tck ->
-    let behavior (ctx: Actor<_>) = function
-        | "start" -> 
-            async {
-                return 1
-            } |!> (ctx.Sender())
-            Ignore
-        | _ -> Unhandled
-    
-    let aref = spawnAnonymous tck <| props (actorOf2 behavior)
-
-    aref <! "start"
-
-    expectMsg tck 1 |> ignore
+//[<Fact>]
+//let ``pipeTo operator doesn't block`` () = testDefault <| fun tck ->
+//    let behavior (ctx: Actor<_>) = function
+//        | "start" -> 
+//            async {
+//                return 1
+//            } |!> (ctx.Sender())
+//            Ignore
+//        | _ -> Unhandled
+//    
+//    let aref = spawnAnonymous tck <| props (actorOf2 behavior)
+//
+//    aref <! "start"
+//
+//    expectMsg tck 1 |> ignore

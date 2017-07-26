@@ -13,23 +13,23 @@ open Akka.Actor
 open System
 open Xunit
 
-[<Fact>]
-let ``actor builder supports bind to async`` () = testDefault <| fun tck ->
-    let ref = 
-        spawn tck "actor"
-        <| props (fun ctx ->
-            let rec loop state =
-                actor {
-                    let! msg = ctx.Receive ()
-                    let! newState = async { return state + 1 }
-                    let expected = state
-                    ctx.Sender() <! newState
-                    return! loop newState
-                }
-            loop 1)
-    ref <! ""
-    ref <! ""
-    ref <! ""
-    expectMsg tck 2 |> ignore
-    expectMsg tck 3 |> ignore
-    expectMsg tck 4 |> ignore
+//[<Fact>]
+//let ``actor builder supports bind to async`` () = testDefault <| fun tck ->
+//    let ref = 
+//        spawn tck "actor"
+//        <| props (fun ctx ->
+//            let rec loop state =
+//                actor {
+//                    let! msg = ctx.Receive ()
+//                    let! newState = async { return state + 1 }
+//                    let expected = state
+//                    ctx.Sender() <! newState
+//                    return! loop newState
+//                }
+//            loop 1)
+//    ref <! ""
+//    ref <! ""
+//    ref <! ""
+//    expectMsg tck 2 |> ignore
+//    expectMsg tck 3 |> ignore
+//    expectMsg tck 4 |> ignore

@@ -79,9 +79,9 @@
     <Compile Include="Tests.fs" />
     <Compile Include="ComputationExpressions.fs" />
     <Compile Include="Api.fs" />
+    <Compile Include="Behaviors.fs" />
     <Compile Include="Actors.fs" />
     <Compile Include="AsyncSupport.fs" />
-    <Compile Include="PersistenceApi.fs" />
     <None Include="paket.references" />
     <Content Include="app.config" />
   </ItemGroup>
@@ -90,16 +90,6 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
-    <ProjectReference Include="..\..\src\Akkling.Persistence\Akkling.Persistence.fsproj">
-      <Name>Akkling.Persistence</Name>
-      <Project>{d89d1ecd-f38c-48c9-ade9-1bab5bece19f}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\src\Akkling.Streams\Akkling.Streams.fsproj">
-      <Name>Akkling.Streams</Name>
-      <Project>{c82ee095-9c29-484f-8049-e8ae18cf807c}</Project>
-      <Private>True</Private>
-    </ProjectReference>
     <ProjectReference Include="..\..\src\Akkling.TestKit\Akkling.TestKit.fsproj">
       <Name>Akkling.TestKit</Name>
       <Project>{cc4ab773-a6a2-48b3-b91b-a42d987d9091}</Project>
